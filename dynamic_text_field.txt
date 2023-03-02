@@ -1,0 +1,186 @@
+import 'package:flutter/material.dart';
+
+class DynamicTextField extends StatefulWidget {
+  const DynamicTextField({super.key});
+
+  @override
+  State<DynamicTextField> createState() => _DynamicTextFieldState();
+}
+
+class _DynamicTextFieldState extends State<DynamicTextField> {
+  TextEditingController name = TextEditingController();
+  TextEditingController firstDate = TextEditingController();
+  TextEditingController secondDate = TextEditingController();
+  TextEditingController lastDate = TextEditingController();
+
+  final _fromKey = GlobalKey<FormState>();
+
+  List allTextField = [];
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+
+    allTextField = [
+      {
+        'label': "23/09/2021",
+        'keyforbackend': "first_date_tax",
+        'value': firstDate,
+        'text_field': TextFormField(
+          controller: firstDate,
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return "Required First Date";
+            }
+            return null;
+          },
+        ),
+      },
+      {
+        'label': "09/10/2021",
+        'keyforbackend': "second_date_tax",
+        'value': secondDate,
+        'text_field': TextFormField(
+          controller: secondDate,
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return "Required Second Date";
+            }
+            return null;
+          },
+        )
+      },
+      {
+        'label': "10/11/2021",
+        'keyforbackend': "last_date_tax",
+        'value': lastDate,
+        'text_field': TextFormField(
+          controller: lastDate,
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return "Required Last Date";
+            }
+            return null;
+          },
+        )
+      }
+    ];
+  }
+
+  List displayTextField = [];
+
+  addTextField() {
+    print('addTextField');
+
+    setState(() {
+      if (allTextField.length == displayTextField.length) {
+        return;
+      } else {
+        displayTextField.add(allTextField[displayTextField.length]);
+      }
+    });
+  }
+
+  removeTextField() {
+    print('removeTextField');
+
+    setState(() {
+      if (displayTextField.isNotEmpty) {
+        displayTextField.removeLast();
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Dynamic Text Field"),
+        centerTitle: true,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(10.0),
+        child: Form(
+            key: _fromKey,
+            child: Column(
+              children: [
+                TextFormField(
+                  controller: name,
+                  decoration: InputDecoration(
+                    label: Text("Enter Name"),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Required Name';
+                    }
+                    return null;
+                  },
+                ),
+                SizedBox(
+                  height: 20,
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text("Assesment Tax:"),
+                    ElevatedButton(
+                      onPressed: addTextField,
+                      child: Text('Add'),
+                    ),
+                    ElevatedButton(
+                      onPressed: removeTextField,
+                      child: Text('Remove'),
+                    )
+                  ],
+                ),
+                ...displayTextField
+                    .map(
+                      (e) => Row(
+                        children: [
+                          Padding(
+                            padding: EdgeInsets.only(top: 20, right: 20),
+                            child: Text(
+                              e['label'],
+                            ),
+                          ),
+                          Expanded(child: e['text_field'])
+                        ],
+                      ),
+                    )
+                    .toList(),
+                ElevatedButton(
+                    onPressed: () {
+                      if (_fromKey.currentState!.validate()) {
+                        List finalDyanamicTextFieldValue = [];
+                        if (displayTextField.isNotEmpty) {
+                          for (int i = 0; i < displayTextField.length; i++) {
+                            TextEditingController taxValue =
+                                displayTextField[i]['value'];
+
+                            Map dummyMap = {
+                              "${displayTextField[i]['keyforbackend']}":
+                                  taxValue.text
+                            };
+                            print(dummyMap);
+                            finalDyanamicTextFieldValue.add(dummyMap);
+                          }
+                        }
+                        Map requiredFromDataForBackend = {
+                          'name': name.text,
+                          'tax': finalDyanamicTextFieldValue
+                        };
+                        print('Final Data $requiredFromDataForBackend');
+                      }
+                    },
+                    child: Text("Submit")),
+                Container(
+                  height: 200,
+                  width: 200,
+                  child: Image.asset("assets/images/harry.jpeg"),
+                )
+              ],
+            )),
+      ),
+    );
+  }
+}
